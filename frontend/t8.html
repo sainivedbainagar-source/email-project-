@@ -1,0 +1,3999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ThreatMail AI</title>
+
+<style>
+
+/* =========================================================
+   BASIC
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #eef2f6;
+    color: #222;
+}
+
+button {
+    font-family: Arial, Helvetica, sans-serif;
+    cursor: pointer;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+#loginPage {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #e8edf3;
+}
+
+.login-card {
+    width: 410px;
+    background: white;
+    padding: 35px;
+    border-radius: 8px;
+    border: 1px solid #d5d5d5;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.login-logo {
+    width: 65px;
+    height: 65px;
+    margin: 0 auto 15px;
+    background: #1d3d60;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.login-card h1 {
+    text-align: center;
+    color: #1d3d60;
+    font-size: 24px;
+}
+
+.login-subtitle {
+    text-align: center;
+    color: #777;
+    font-size: 13px;
+    margin-top: 7px;
+    margin-bottom: 25px;
+}
+
+.login-card label {
+    display: block;
+    font-weight: bold;
+    font-size: 14px;
+    margin: 15px 0 7px;
+}
+
+.login-card input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    outline: none;
+}
+
+.login-card input:focus {
+    border-color: #1d3d60;
+}
+
+.login-button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 22px;
+    border: none;
+    border-radius: 4px;
+    background: #1d3d60;
+    color: white;
+    font-weight: bold;
+}
+
+.login-button:hover {
+    background: #142c47;
+}
+
+.login-error {
+    color: #c0392b;
+    text-align: center;
+    margin-top: 13px;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   MAIN WEBSITE
+========================================================= */
+
+#mainWebsite {
+    display: none;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.top-header {
+    height: 64px;
+    background: #1d3d60;
+    color: white;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 24px;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+
+    z-index: 100;
+}
+
+.top-header h2 {
+    font-size: 19px;
+}
+
+.project-name {
+    font-size: 12px;
+    margin-left: 18px;
+    color: #d6e2ee;
+}
+
+.user-area {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-name {
+    font-size: 13px;
+}
+
+.logout-button {
+    background: #b9362c;
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 4px;
+}
+
+.logout-button:hover {
+    background: #942c24;
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.sidebar {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    bottom: 0;
+
+    width: 225px;
+
+    background: white;
+    border-right: 1px solid #d5d5d5;
+
+    overflow-y: auto;
+
+    z-index: 90;
+}
+
+.menu-title {
+    padding: 20px 18px 10px;
+
+    color: #888;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.sidebar button {
+    width: 100%;
+
+    border: none;
+    background: white;
+
+    padding: 14px 20px;
+
+    text-align: left;
+
+    font-size: 14px;
+    color: #333;
+
+    border-bottom: 1px solid #eee;
+}
+
+.sidebar button:hover {
+    background: #edf2f6;
+    color: #1d3d60;
+}
+
+.sidebar button.active {
+    background: #dce7f0;
+    color: #1d3d60;
+    font-weight: bold;
+}
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.content {
+    margin-left: 225px;
+    padding: 90px 28px 40px;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+.page-title {
+    color: #1d3d60;
+    font-size: 25px;
+    margin-bottom: 7px;
+}
+
+.page-description {
+    color: #707070;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+
+/* =========================================================
+   COMMON BOX
+========================================================= */
+
+.box {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 22px;
+    margin-bottom: 20px;
+}
+
+.box h3 {
+    color: #1d3d60;
+    margin-bottom: 15px;
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.primary-button {
+    padding: 10px 17px;
+    border: none;
+    border-radius: 4px;
+    background: #1d3d60;
+    color: white;
+}
+
+.primary-button:hover {
+    background: #142c47;
+}
+
+.secondary-button {
+    padding: 10px 17px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    background: white;
+    color: #444;
+}
+
+.danger-button {
+    padding: 10px 17px;
+    border: none;
+    border-radius: 4px;
+    background: #b9362c;
+    color: white;
+}
+
+
+/* =========================================================
+   DASHBOARD CARDS
+========================================================= */
+
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.dashboard-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 20px;
+}
+
+.dashboard-card h3 {
+    color: #777;
+    font-size: 13px;
+    font-weight: normal;
+}
+
+.dashboard-number {
+    color: #1d3d60;
+    font-size: 29px;
+    font-weight: bold;
+    margin-top: 9px;
+}
+
+.dashboard-card p {
+    color: #888;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #1d3d60;
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-size: 13px;
+}
+
+td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    font-size: 13px;
+}
+
+tr:hover {
+    background: #f7f8f9;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.safe {
+    color: #26823b;
+    font-weight: bold;
+}
+
+.warning {
+    color: #c77b0a;
+    font-weight: bold;
+}
+
+.danger {
+    color: #c0392b;
+    font-weight: bold;
+}
+
+
+/* =========================================================
+   EMAIL DETAILS
+========================================================= */
+
+.email-details {
+    display: none;
+}
+
+.email-info {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 15px;
+    margin-bottom: 18px;
+}
+
+.email-info p {
+    margin: 8px 0;
+}
+
+.email-content {
+    background: #f6f7f8;
+    border: 1px solid #ddd;
+    padding: 18px;
+    line-height: 1.7;
+    min-height: 120px;
+}
+
+
+/* =========================================================
+   ALERT
+========================================================= */
+
+.alert-container {
+    max-width: 900px;
+    background: white;
+    border: 1px solid #d2d2d2;
+    border-radius: 7px;
+    padding: 25px;
+}
+
+.alert-heading {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 20px;
+}
+
+.alert-icon {
+    width: 54px;
+    height: 54px;
+
+    background: #c0392b;
+    color: white;
+
+    border-radius: 50%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 31px;
+    font-weight: bold;
+}
+
+.alert-heading h2 {
+    color: #c0392b;
+    margin-bottom: 5px;
+}
+
+.alert-heading p {
+    color: #777;
+    font-size: 14px;
+}
+
+.alert-email {
+    margin-top: 20px;
+    background: #f7f7f7;
+    border: 1px solid #ddd;
+    padding: 18px;
+}
+
+.alert-email h3,
+.alert-reasons h3,
+.permission-section h3 {
+    color: #1d3d60;
+    margin-bottom: 12px;
+}
+
+.alert-email p {
+    margin: 9px 0;
+}
+
+.alert-reasons {
+    margin-top: 20px;
+    background: #fff8e6;
+    border: 1px solid #ead9a8;
+    padding: 18px;
+}
+
+.alert-reasons ul {
+    margin-left: 20px;
+}
+
+.alert-reasons li {
+    margin: 9px 0;
+}
+
+.permission-section {
+    margin-top: 20px;
+    border-top: 1px solid #ddd;
+    padding-top: 20px;
+}
+
+.permission-section p {
+    color: #666;
+    line-height: 1.6;
+}
+
+.permission-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.allow-button {
+    background: #1d3d60;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 11px 22px;
+}
+
+.cancel-button {
+    background: white;
+    color: #555;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    padding: 11px 22px;
+}
+
+
+/* =========================================================
+   PROCESSING SCREEN
+========================================================= */
+
+.processing-container {
+    max-width: 850px;
+    margin: 20px auto;
+}
+
+.processing-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.processing-header h2 {
+    color: #1d3d60;
+    margin-bottom: 8px;
+}
+
+.processing-header p {
+    color: #777;
+}
+
+.processing-step {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 18px;
+
+    display: flex;
+    align-items: center;
+
+    margin-bottom: 10px;
+
+    border-radius: 5px;
+}
+
+.step-number {
+    width: 35px;
+    height: 35px;
+
+    border-radius: 50%;
+
+    background: #ddd;
+    color: #555;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-weight: bold;
+
+    margin-right: 15px;
+}
+
+.processing-step.running .step-number {
+    background: #1d3d60;
+    color: white;
+}
+
+.processing-step.completed .step-number {
+    background: #26823b;
+    color: white;
+}
+
+.step-info {
+    flex: 1;
+}
+
+.step-info h3 {
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.step-info p {
+    color: #888;
+    font-size: 13px;
+}
+
+.step-status {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.processing-progress {
+    height: 8px;
+    width: 100%;
+
+    background: #ddd;
+
+    border-radius: 10px;
+
+    margin-top: 25px;
+
+    overflow: hidden;
+}
+
+.processing-progress-bar {
+    height: 100%;
+    width: 0%;
+
+    background: #1d3d60;
+
+    transition: width 0.5s;
+}
+
+
+/* =========================================================
+   DASHBOARD / INVESTIGATION
+========================================================= */
+
+.investigation-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+}
+
+.investigation-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 18px;
+}
+
+.investigation-card h4 {
+    color: #777;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.investigation-value {
+    color: #1d3d60;
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.finding {
+    padding: 10px;
+    margin-bottom: 8px;
+    background: #f5f6f7;
+    border-left: 4px solid #c0392b;
+}
+
+.quick-links {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+
+/* =========================================================
+   RISK SCORE
+========================================================= */
+
+.risk-container {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.risk-score {
+    font-size: 48px;
+    color: #c0392b;
+    font-weight: bold;
+}
+
+.risk-bar {
+    flex: 1;
+    height: 20px;
+    background: #ddd;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.risk-fill {
+    width: 82%;
+    height: 100%;
+    background: #c0392b;
+}
+
+
+/* =========================================================
+   GRAPH
+========================================================= */
+
+.graph-area {
+    background: #f4f6f8;
+    border: 1px solid #d8dce1;
+
+    min-height: 500px;
+
+    position: relative;
+
+    overflow: hidden;
+
+    border-radius: 6px;
+}
+
+.graph-line {
+    position: absolute;
+
+    height: 3px;
+
+    background: #8995a3;
+
+    transform-origin: left center;
+
+    z-index: 1;
+}
+
+.graph-node {
+    position: absolute;
+
+    width: 145px;
+    min-height: 80px;
+
+    background: white;
+
+    border: 2px solid #1d3d60;
+
+    border-radius: 8px;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+
+    padding: 10px;
+
+    z-index: 2;
+
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+
+.graph-node strong {
+    color: #1d3d60;
+    font-size: 14px;
+}
+
+.graph-node span {
+    color: #777;
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+.node-email {
+    left: 5%;
+    top: 40%;
+}
+
+.node-domain {
+    left: 25%;
+    top: 20%;
+}
+
+.node-ip {
+    left: 25%;
+    top: 62%;
+}
+
+.node-url {
+    left: 50%;
+    top: 40%;
+}
+
+.node-infrastructure {
+    left: 75%;
+    top: 40%;
+}
+
+.graph-legend {
+    display: flex;
+    gap: 20px;
+    margin-top: 15px;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   REPORT
+========================================================= */
+
+.report-header {
+    border-bottom: 2px solid #1d3d60;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.report-header h2 {
+    color: #1d3d60;
+}
+
+.report-section {
+    margin-bottom: 25px;
+}
+
+.report-section h3 {
+    color: #1d3d60;
+    margin-bottom: 10px;
+}
+
+.report-summary {
+    background: #f5f7f9;
+    border-left: 5px solid #c0392b;
+    padding: 15px;
+    line-height: 1.6;
+}
+
+.report-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+
+/* =========================================================
+   FORMS
+========================================================= */
+
+textarea {
+    width: 100%;
+    height: 180px;
+
+    padding: 12px;
+
+    border: 1px solid #bbb;
+    border-radius: 4px;
+
+    resize: vertical;
+
+    font-family: Arial;
+    font-size: 13px;
+}
+
+.text-input {
+    width: 100%;
+    padding: 11px;
+
+    border: 1px solid #bbb;
+    border-radius: 4px;
+}
+
+.analyze-button {
+    margin-top: 15px;
+
+    padding: 11px 20px;
+
+    background: #1d3d60;
+    color: white;
+
+    border: none;
+    border-radius: 4px;
+}
+
+.result-box {
+    display: none;
+
+    margin-top: 20px;
+
+    padding: 18px;
+
+    background: #f4f6f8;
+
+    border-left: 5px solid #1d3d60;
+}
+
+.result-box h3 {
+    color: #1d3d60;
+    margin-bottom: 10px;
+}
+
+.result-box p {
+    margin: 8px 0;
+}
+
+.file-input {
+    padding: 10px 0;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width: 1000px) {
+
+    .dashboard-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .investigation-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media(max-width: 700px) {
+
+    .sidebar {
+        width: 180px;
+    }
+
+    .content {
+        margin-left: 180px;
+    }
+
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .investigation-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .top-header h2 {
+        font-size: 15px;
+    }
+
+    .project-name {
+        display: none;
+    }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     LOGIN
+========================================================= -->
+
+<div id="loginPage">
+
+    <div class="login-card">
+
+        <div class="login-logo">
+            T
+        </div>
+
+        <h1>
+            ThreatMail AI
+        </h1>
+
+        <p class="login-subtitle">
+            Email Threat Detection & Forensic Intelligence
+        </p>
+
+
+        <form onsubmit="login(event)">
+
+            <label>
+                Email Address
+            </label>
+
+            <input
+                type="email"
+                id="email"
+                placeholder="Enter your email address"
+                required
+            >
+
+
+            <label>
+                Password
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Enter your password"
+                required
+            >
+
+
+            <button
+                type="submit"
+                class="login-button">
+
+                Login
+
+            </button>
+
+        </form>
+
+
+        <div
+            id="loginError"
+            class="login-error">
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     MAIN WEBSITE
+========================================================= -->
+
+<div id="mainWebsite">
+
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<header class="top-header">
+
+    <h2>
+        ThreatMail AI
+    </h2>
+
+    <span class="project-name">
+        Email Threat Detection & Forensic Intelligence
+    </span>
+
+
+    <div class="user-area">
+
+        <span
+            class="user-name"
+            id="loggedUser">
+
+            Admin
+
+        </span>
+
+
+        <button
+            class="logout-button"
+            onclick="logout()">
+
+            Logout
+
+        </button>
+
+    </div>
+
+</header>
+
+
+
+<!-- =========================================================
+     SIDEBAR
+========================================================= -->
+
+<aside class="sidebar">
+
+    <div class="menu-title">
+        MAIN MENU
+    </div>
+
+
+    <button
+        class="active"
+        onclick="showPage('dashboard', this)">
+
+        Dashboard
+
+    </button>
+
+
+    <button
+        onclick="showPage('incomingEmail', this)">
+
+        Incoming Email
+
+    </button>
+
+
+    <button
+        onclick="showPage('suspiciousAlert', this)">
+
+        Suspicious Alerts
+
+    </button>
+
+
+    <button
+        onclick="showPage('processing', this)">
+
+        Analysis / Processing
+
+    </button>
+
+
+    <button
+        onclick="showPage('investigationDashboard', this)">
+
+        Investigation Dashboard
+
+    </button>
+
+
+    <button
+        onclick="showPage('emailAnalysis', this)">
+
+        Email Analysis
+
+    </button>
+
+
+    <button
+        onclick="showPage('headerAnalysis', this)">
+
+        Header Analysis
+
+    </button>
+
+
+    <button
+        onclick="showPage('urlAnalysis', this)">
+
+        URL Analysis
+
+    </button>
+
+
+    <button
+        onclick="showPage('ipAnalysis', this)">
+
+        IP / Geolocation
+
+    </button>
+
+
+    <button
+        onclick="showPage('attackGraph', this)">
+
+        Investigation Graph
+
+    </button>
+
+
+    <button
+        onclick="showPage('forensicReport', this)">
+
+        Forensic Report
+
+    </button>
+
+</aside>
+
+
+
+<!-- =========================================================
+     CONTENT
+========================================================= -->
+
+<main class="content">
+
+
+<!-- =========================================================
+     DASHBOARD
+========================================================= -->
+
+<section
+    id="dashboard"
+    class="page active">
+
+    <h1 class="page-title">
+        Dashboard
+    </h1>
+
+    <p class="page-description">
+        Email Threat Detection & Forensic Intelligence overview.
+    </p>
+
+
+    <div class="dashboard-cards">
+
+        <div class="dashboard-card">
+
+            <h3>
+                Threat Score
+            </h3>
+
+            <div class="dashboard-number">
+                82%
+            </div>
+
+            <p class="danger">
+                HIGH RISK
+            </p>
+
+        </div>
+
+
+        <div class="dashboard-card">
+
+            <h3>
+                Authentication
+            </h3>
+
+            <div class="dashboard-number">
+                1/3
+            </div>
+
+            <p>
+                SPF passed
+            </p>
+
+        </div>
+
+
+        <div class="dashboard-card">
+
+            <h3>
+                Suspicious Indicators
+            </h3>
+
+            <div class="dashboard-number">
+                5
+            </div>
+
+            <p>
+                IPs / Domains / URLs
+            </p>
+
+        </div>
+
+
+        <div class="dashboard-card">
+
+            <h3>
+                Report Status
+            </h3>
+
+            <div
+                class="dashboard-number"
+                style="font-size:21px;">
+
+                Ready
+
+            </div>
+
+            <p>
+                Forensic report generated
+            </p>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- AUTHENTICATION -->
+
+    <div class="box">
+
+        <h3>
+            Email Authentication
+        </h3>
+
+
+        <table>
+
+            <tr>
+                <th>Check</th>
+                <th>Result</th>
+                <th>Status</th>
+            </tr>
+
+
+            <tr>
+                <td>SPF</td>
+                <td>Passed</td>
+                <td class="safe">PASS</td>
+            </tr>
+
+
+            <tr>
+                <td>DKIM</td>
+                <td>Failed</td>
+                <td class="danger">FAIL</td>
+            </tr>
+
+
+            <tr>
+                <td>DMARC</td>
+                <td>Failed</td>
+                <td class="danger">FAIL</td>
+            </tr>
+
+        </table>
+
+    </div>
+
+
+
+    <!-- AI FINDINGS -->
+
+    <div class="box">
+
+        <h3>
+            AI Findings
+        </h3>
+
+
+        <div class="finding">
+            Suspicious sender-domain relationship detected.
+        </div>
+
+
+        <div class="finding">
+            Urgent account-verification language detected.
+        </div>
+
+
+        <div class="finding">
+            Suspicious URL pattern identified.
+        </div>
+
+
+        <div class="finding">
+            Authentication failures increase phishing risk.
+        </div>
+
+    </div>
+
+
+
+    <!-- QUICK LINKS -->
+
+    <div class="box">
+
+        <h3>
+            Quick Investigation Links
+        </h3>
+
+
+        <div class="quick-links">
+
+            <button
+                class="primary-button"
+                onclick="showPageById('investigationDashboard')">
+
+                Investigation Dashboard
+
+            </button>
+
+
+            <button
+                class="primary-button"
+                onclick="showPageById('attackGraph')">
+
+                Open Investigation Graph
+
+            </button>
+
+
+            <button
+                class="primary-button"
+                onclick="showPageById('forensicReport')">
+
+                View Forensic Report
+
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     INCOMING EMAIL
+========================================================= -->
+
+<section
+    id="incomingEmail"
+    class="page">
+
+    <h1 class="page-title">
+        Incoming Email
+    </h1>
+
+    <p class="page-description">
+        Review emails received by the system.
+    </p>
+
+
+    <div class="box">
+
+        <h3>
+            Recent Emails
+        </h3>
+
+
+        <table>
+
+            <tr>
+                <th>Sender</th>
+                <th>Subject</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+
+
+            <tr>
+
+                <td>
+                    security@example.com
+                </td>
+
+                <td>
+                    Urgent Account Verification
+                </td>
+
+                <td>
+                    10:42 AM
+                </td>
+
+                <td class="danger">
+                    Suspicious
+                </td>
+
+                <td>
+
+                    <button
+                        class="primary-button"
+                        onclick="viewEmail(
+                        'security@example.com',
+                        'Urgent Account Verification Required',
+                        'Your account has been temporarily suspended. Please verify your account immediately by clicking the verification link below.'
+                        )">
+
+                        View
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td>
+                    support@gmail.com
+                </td>
+
+                <td>
+                    Monthly Statement
+                </td>
+
+                <td>
+                    10:25 AM
+                </td>
+
+                <td class="safe">
+                    Safe
+                </td>
+
+                <td>
+
+                    <button
+                        class="primary-button"
+                        onclick="viewEmail(
+                        'support@gmail.com',
+                        'Your Monthly Statement',
+                        'Your monthly statement is now available. Thank you for using our service.'
+                        )">
+
+                        View
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td>
+                    alert@example.net
+                </td>
+
+                <td>
+                    Congratulations
+                </td>
+
+                <td>
+                    09:58 AM
+                </td>
+
+                <td class="warning">
+                    Review
+                </td>
+
+                <td>
+
+                    <button
+                        class="primary-button"
+                        onclick="viewEmail(
+                        'alert@example.net',
+                        'Congratulations! You Won',
+                        'Congratulations! You have won a special reward. Click the link to claim your prize.'
+                        )">
+
+                        View
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+        </table>
+
+    </div>
+
+
+    <div
+        id="selectedEmail"
+        class="box email-details">
+
+        <h3>
+            Email Details
+        </h3>
+
+
+        <div class="email-info">
+
+            <p>
+                <b>From:</b>
+                <span id="emailSender"></span>
+            </p>
+
+            <p>
+                <b>Subject:</b>
+                <span id="emailSubject"></span>
+            </p>
+
+            <p>
+                <b>Received:</b>
+                Today
+            </p>
+
+        </div>
+
+
+        <p>
+            <b>Email Content</b>
+        </p>
+
+
+        <div
+            id="emailBody"
+            class="email-content">
+        </div>
+
+
+        <br>
+
+
+        <button
+            class="primary-button"
+            onclick="openAlert()">
+
+            Check for Threats
+
+        </button>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     SUSPICIOUS ALERT
+========================================================= -->
+
+<section
+    id="suspiciousAlert"
+    class="page">
+
+    <h1 class="page-title">
+        Suspicious Email Alert
+    </h1>
+
+    <p class="page-description">
+        A potentially dangerous email requires your approval.
+    </p>
+
+
+    <div class="alert-container">
+
+
+        <div class="alert-heading">
+
+            <div class="alert-icon">
+                !
+            </div>
+
+
+            <div>
+
+                <h2>
+                    Suspicious Email Detected
+                </h2>
+
+                <p>
+                    Potential security risks were detected
+                    in the incoming email.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="alert-email">
+
+            <h3>
+                Email Information
+            </h3>
+
+
+            <p>
+                <b>From:</b>
+                <span id="alertSender">
+                    security@example.com
+                </span>
+            </p>
+
+
+            <p>
+                <b>Subject:</b>
+                <span id="alertSubject">
+                    Urgent Account Verification Required
+                </span>
+            </p>
+
+
+            <p>
+                <b>Received:</b>
+                Today, 10:42 AM
+            </p>
+
+
+            <p>
+                <b>Threat Score:</b>
+
+                <span class="danger">
+                    82%
+                </span>
+
+            </p>
+
+        </div>
+
+
+        <div class="alert-reasons">
+
+            <h3>
+                Why was this email flagged?
+            </h3>
+
+
+            <ul>
+
+                <li>
+                    Sender domain appears suspicious
+                </li>
+
+                <li>
+                    Urgent account-verification language detected
+                </li>
+
+                <li>
+                    Verification URL detected
+                </li>
+
+                <li>
+                    Email authentication requires verification
+                </li>
+
+                <li>
+                    Sender identity could not be fully verified
+                </li>
+
+            </ul>
+
+        </div>
+
+
+        <div class="permission-section">
+
+            <h3>
+                Allow Analysis?
+            </h3>
+
+
+            <p>
+                Detailed analysis will inspect email content,
+                authentication information, URLs, domains,
+                IP information and related infrastructure.
+            </p>
+
+
+            <div class="permission-buttons">
+
+                <button
+                    class="allow-button"
+                    onclick="allowAnalysis()">
+
+                    Allow Analysis
+
+                </button>
+
+
+                <button
+                    class="cancel-button"
+                    onclick="cancelAnalysis()">
+
+                    Cancel
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="permissionResult"
+            style="display:none;margin-top:20px;">
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     PROCESSING
+========================================================= -->
+
+<section
+    id="processing"
+    class="page">
+
+    <h1 class="page-title">
+        Analysis / Processing
+    </h1>
+
+    <p class="page-description">
+        ThreatMail AI is processing the suspicious email.
+    </p>
+
+
+    <div class="processing-container">
+
+        <div class="processing-header">
+
+            <h2>
+                Investigation in Progress
+            </h2>
+
+            <p>
+                Please wait while the system performs
+                multiple security analysis stages.
+            </p>
+
+        </div>
+
+
+        <div
+            class="processing-step"
+            id="step1">
+
+            <div class="step-number">
+                1
+            </div>
+
+            <div class="step-info">
+
+                <h3>
+                    Parsing
+                </h3>
+
+                <p>
+                    Extracting email content, sender,
+                    links and metadata.
+                </p>
+
+            </div>
+
+            <div
+                class="step-status"
+                id="status1">
+
+                Waiting
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="processing-step"
+            id="step2">
+
+            <div class="step-number">
+                2
+            </div>
+
+            <div class="step-info">
+
+                <h3>
+                    Authentication
+                </h3>
+
+                <p>
+                    Checking SPF, DKIM and DMARC.
+                </p>
+
+            </div>
+
+            <div
+                class="step-status"
+                id="status2">
+
+                Waiting
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="processing-step"
+            id="step3">
+
+            <div class="step-number">
+                3
+            </div>
+
+            <div class="step-info">
+
+                <h3>
+                    Threat Intelligence
+                </h3>
+
+                <p>
+                    Checking domains, URLs and IP indicators.
+                </p>
+
+            </div>
+
+            <div
+                class="step-status"
+                id="status3">
+
+                Waiting
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="processing-step"
+            id="step4">
+
+            <div class="step-number">
+                4
+            </div>
+
+            <div class="step-info">
+
+                <h3>
+                    AI Analysis
+                </h3>
+
+                <p>
+                    Identifying suspicious language,
+                    patterns and relationships.
+                </p>
+
+            </div>
+
+            <div
+                class="step-status"
+                id="status4">
+
+                Waiting
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="processing-step"
+            id="step5">
+
+            <div class="step-number">
+                5
+            </div>
+
+            <div class="step-info">
+
+                <h3>
+                    Risk Scoring
+                </h3>
+
+                <p>
+                    Combining investigation results into
+                    an overall threat score.
+                </p>
+
+            </div>
+
+            <div
+                class="step-status"
+                id="status5">
+
+                Waiting
+
+            </div>
+
+        </div>
+
+
+        <div class="processing-progress">
+
+            <div
+                id="processingBar"
+                class="processing-progress-bar">
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     INVESTIGATION DASHBOARD
+========================================================= -->
+
+<section
+    id="investigationDashboard"
+    class="page">
+
+    <h1 class="page-title">
+        Investigation Dashboard
+    </h1>
+
+    <p class="page-description">
+        Consolidated findings from the email investigation.
+    </p>
+
+
+    <div class="box">
+
+        <h3>
+            Overall Risk
+        </h3>
+
+
+        <div class="risk-container">
+
+            <div class="risk-score">
+                82%
+            </div>
+
+            <div style="flex:1;">
+
+                <div class="risk-bar">
+
+                    <div class="risk-fill"></div>
+
+                </div>
+
+                <p style="margin-top:10px;">
+
+                    Threat Level:
+
+                    <span class="danger">
+                        HIGH
+                    </span>
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="investigation-grid">
+
+        <div class="investigation-card">
+
+            <h4>
+                SPF
+            </h4>
+
+            <div class="investigation-value safe">
+                PASS
+            </div>
+
+        </div>
+
+
+        <div class="investigation-card">
+
+            <h4>
+                DKIM
+            </h4>
+
+            <div class="investigation-value danger">
+                FAIL
+            </div>
+
+        </div>
+
+
+        <div class="investigation-card">
+
+            <h4>
+                DMARC
+            </h4>
+
+            <div class="investigation-value danger">
+                FAIL
+            </div>
+
+        </div>
+
+
+        <div class="investigation-card">
+
+            <h4>
+                Source IP
+            </h4>
+
+            <div class="investigation-value"
+                 style="font-size:18px;">
+
+                203.0.113.25
+
+            </div>
+
+        </div>
+
+
+        <div class="investigation-card">
+
+            <h4>
+                Sender Domain
+            </h4>
+
+            <div class="investigation-value"
+                 style="font-size:18px;">
+
+                suspicious-example.net
+
+            </div>
+
+        </div>
+
+
+        <div class="investigation-card">
+
+            <h4>
+                Suspicious URLs
+            </h4>
+
+            <div class="investigation-value">
+                2
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="box" style="margin-top:20px;">
+
+        <h3>
+            AI Findings
+        </h3>
+
+
+        <div class="finding">
+            High-risk phishing language detected.
+        </div>
+
+        <div class="finding">
+            Sender domain does not align with expected identity.
+        </div>
+
+        <div class="finding">
+            Authentication failures increase confidence of spoofing.
+        </div>
+
+        <div class="finding">
+            Verification URL requires further threat-intelligence review.
+        </div>
+
+    </div>
+
+
+
+    <div class="box">
+
+        <h3>
+            Investigation Actions
+        </h3>
+
+
+        <div class="quick-links">
+
+            <button
+                class="primary-button"
+                onclick="showPageById('attackGraph')">
+
+                Open Attack Graph
+
+            </button>
+
+
+            <button
+                class="primary-button"
+                onclick="showPageById('forensicReport')">
+
+                View Forensic Report
+
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     EMAIL ANALYSIS
+========================================================= -->
+
+<section
+    id="emailAnalysis"
+    class="page">
+
+    <h1 class="page-title">
+        Email Analysis
+    </h1>
+
+    <p class="page-description">
+        Analyze email content and detect suspicious patterns.
+    </p>
+
+
+    <div class="box">
+
+        <h3>
+            Upload Email
+        </h3>
+
+
+        <input
+            type="file"
+            class="file-input"
+            id="emailFile"
+            accept=".eml,.txt"
+            onchange="showFileName()">
+
+
+        <p
+            id="fileName"
+            style="margin-top:10px;color:#777;">
+        </p>
+
+    </div>
+
+
+    <div class="box">
+
+        <h3>
+            Email Content
+        </h3>
+
+
+        <textarea
+            id="emailText"
+            placeholder="Paste email content here...">
+        </textarea>
+
+
+        <button
+            class="analyze-button"
+            onclick="analyzeEmail()">
+
+            Analyze Email
+
+        </button>
+
+
+        <div
+            id="emailResult"
+            class="result-box">
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     HEADER ANALYSIS
+========================================================= -->
+
+<section
+    id="headerAnalysis"
+    class="page">
+
+    <h1 class="page-title">
+        Header Analysis
+    </h1>
+
+    <p class="page-description">
+        Analyze email headers and authentication information.
+    </p>
+
+
+    <div class="box">
+
+        <h3>
+            Email Headers
+        </h3>
+
+
+        <textarea
+            id="headerText"
+            placeholder="Paste email headers here...">
+        </textarea>
+
+
+        <button
+            class="analyze-button"
+            onclick="analyzeHeader()">
+
+            Analyze Headers
+
+        </button>
+
+
+        <div
+            id="headerResult"
+            class="result-box">
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     URL ANALYSIS
+========================================================= -->
+
+<section
+    id="urlAnalysis"
+    class="page">
+
+    <h1 class="page-title">
+        URL Analysis
+    </h1>
+
+    <p class="page-description">
+        Check suspicious URLs found inside emails.
+    </p>
+
+
+    <div class="box">
+
+        <h3>
+            Enter URL
+        </h3>
+
+
+        <input
+            type="text"
+            id="urlInput"
+            class="text-input"
+            placeholder="https://example.com/login">
+
+
+        <button
+            class="analyze-button"
+            onclick="analyzeURL()">
+
+            Analyze URL
+
+        </button>
+
+
+        <div
+            id="urlResult"
+            class="result-box">
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     IP / GEOLOCATION
+========================================================= -->
+
+<section
+    id="ipAnalysis"
+    class="page">
+
+    <h1 class="page-title">
+        IP / Geolocation
+    </h1>
+
+    <p class="page-description">
+        Investigate source IP information. Geolocation results
+        provide an approximate network location and should not
+        be treated as the attacker's exact physical location.
+    </p>
+
+
+    <div class="box">
+
+        <h3>
+            IP Address
+        </h3>
+
+
+        <input
+            type="text"
+            id="ipInput"
+            class="text-input"
+            placeholder="Example: 8.8.8.8">
+
+
+        <button
+            class="analyze-button"
+            onclick="analyzeIP()">
+
+            Analyze IP
+
+        </button>
+
+
+        <div
+            id="ipResult"
+            class="result-box">
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     INVESTIGATION GRAPH
+========================================================= -->
+
+<section
+    id="attackGraph"
+    class="page">
+
+    <h1 class="page-title">
+        Infrastructure / Attack Graph
+    </h1>
+
+    <p class="page-description">
+        Visual relationship between the email and associated
+        infrastructure indicators.
+    </p>
+
+
+    <div class="box">
+
+        <h3>
+            Investigation Graph
+        </h3>
+
+
+        <div
+            id="graphArea"
+            class="graph-area">
+
+
+            <!-- LINES -->
+
+            <div
+                id="lineEmailDomain"
+                class="graph-line">
+            </div>
+
+
+            <div
+                id="lineDomainURL"
+                class="graph-line">
+            </div>
+
+
+            <div
+                id="lineIPURL"
+                class="graph-line">
+            </div>
+
+
+            <div
+                id="lineURLInfrastructure"
+                class="graph-line">
+            </div>
+
+
+            <!-- NODES -->
+
+            <div class="graph-node node-email">
+
+                <strong>
+                    EMAIL
+                </strong>
+
+                <span>
+                    security@example.com
+                </span>
+
+            </div>
+
+
+            <div class="graph-node node-domain">
+
+                <strong>
+                    DOMAIN
+                </strong>
+
+                <span>
+                    suspicious-example.net
+                </span>
+
+            </div>
+
+
+            <div class="graph-node node-ip">
+
+                <strong>
+                    IP
+                </strong>
+
+                <span>
+                    203.0.113.25
+                </span>
+
+            </div>
+
+
+            <div class="graph-node node-url">
+
+                <strong>
+                    URL
+                </strong>
+
+                <span>
+                    /account/verify
+                </span>
+
+            </div>
+
+
+            <div class="graph-node node-infrastructure">
+
+                <strong>
+                    INFRASTRUCTURE
+                </strong>
+
+                <span>
+                    Hosting / Network
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="graph-legend">
+
+            <span>
+                ● Email
+            </span>
+
+            <span>
+                ● Domain
+            </span>
+
+            <span>
+                ● IP
+            </span>
+
+            <span>
+                ● URL
+            </span>
+
+            <span>
+                ● Infrastructure
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="box">
+
+        <h3>
+            Graph Interpretation
+        </h3>
+
+        <p style="line-height:1.7;">
+
+            The graph connects the investigated email with its
+            sender domain, source IP, suspicious URL and related
+            infrastructure. These relationships can help an
+            investigator understand how individual indicators
+            are connected.
+
+        </p>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     FORENSIC REPORT
+========================================================= -->
+
+<section
+    id="forensicReport"
+    class="page">
+
+    <h1 class="page-title">
+        Forensic Report
+    </h1>
+
+    <p class="page-description">
+        Generated forensic investigation report.
+    </p>
+
+
+    <div class="report-actions">
+
+        <button
+            class="primary-button"
+            onclick="downloadReport()">
+
+            Download Report
+
+        </button>
+
+
+        <button
+            class="secondary-button"
+            onclick="window.print()">
+
+            Print Report
+
+        </button>
+
+    </div>
+
+
+    <div
+        id="forensicReportContent"
+        class="box">
+
+
+        <div class="report-header">
+
+            <h2>
+                ThreatMail AI
+            </h2>
+
+            <p style="margin-top:6px;">
+                Email Threat Detection & Forensic Intelligence
+            </p>
+
+        </div>
+
+
+        <div class="report-section">
+
+            <h3>
+                1. Investigation Summary
+            </h3>
+
+
+            <div class="report-summary">
+
+                The investigated email has been classified as
+                <b>HIGH RISK</b> with an overall threat score
+                of <b>82%</b>.
+
+            </div>
+
+        </div>
+
+
+        <div class="report-section">
+
+            <h3>
+                2. Email Information
+            </h3>
+
+
+            <table>
+
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                </tr>
+
+                <tr>
+                    <td>Sender</td>
+                    <td>security@example.com</td>
+                </tr>
+
+                <tr>
+                    <td>Subject</td>
+                    <td>Urgent Account Verification Required</td>
+                </tr>
+
+                <tr>
+                    <td>Classification</td>
+                    <td class="danger">High Risk</td>
+                </tr>
+
+            </table>
+
+        </div>
+
+
+        <div class="report-section">
+
+            <h3>
+                3. Authentication Results
+            </h3>
+
+
+            <table>
+
+                <tr>
+                    <th>Authentication</th>
+                    <th>Result</th>
+                </tr>
+
+                <tr>
+                    <td>SPF</td>
+                    <td class="safe">Passed</td>
+                </tr>
+
+                <tr>
+                    <td>DKIM</td>
+                    <td class="danger">Failed</td>
+                </tr>
+
+                <tr>
+                    <td>DMARC</td>
+                    <td class="danger">Failed</td>
+                </tr>
+
+            </table>
+
+        </div>
+
+
+        <div class="report-section">
+
+            <h3>
+                4. Threat Indicators
+            </h3>
+
+
+            <table>
+
+                <tr>
+                    <th>Indicator</th>
+                    <th>Value</th>
+                    <th>Status</th>
+                </tr>
+
+                <tr>
+                    <td>Domain</td>
+                    <td>suspicious-example.net</td>
+                    <td class="danger">Suspicious</td>
+                </tr>
+
+                <tr>
+                    <td>IP</td>
+                    <td>203.0.113.25</td>
+                    <td class="warning">Review</td>
+                </tr>
+
+                <tr>
+                    <td>URL</td>
+                    <td>/account/verify</td>
+                    <td class="danger">Suspicious</td>
+                </tr>
+
+            </table>
+
+        </div>
+
+
+        <div class="report-section">
+
+            <h3>
+                5. AI Findings
+            </h3>
+
+
+            <ul style="margin-left:20px;line-height:1.8;">
+
+                <li>
+                    Suspicious account verification language detected.
+                </li>
+
+                <li>
+                    Sender domain requires further verification.
+                </li>
+
+                <li>
+                    DKIM and DMARC authentication failures detected.
+                </li>
+
+                <li>
+                    Suspicious verification URL identified.
+                </li>
+
+                <li>
+                    Multiple indicators contribute to the high-risk score.
+                </li>
+
+            </ul>
+
+        </div>
+
+
+        <div class="report-section">
+
+            <h3>
+                6. Investigation Graph
+            </h3>
+
+
+            <p style="line-height:1.7;">
+
+                Email → Domain → IP → URL → Infrastructure
+
+            </p>
+
+        </div>
+
+
+        <div class="report-section">
+
+            <h3>
+                7. Final Assessment
+            </h3>
+
+
+            <div class="report-summary">
+
+                <b>Risk Score:</b> 82%<br>
+
+                <b>Threat Level:</b>
+                <span class="danger">HIGH</span><br>
+
+                <b>Recommended Action:</b>
+                Do not trust links or provide credentials.
+                Perform additional investigation using backend
+                threat-intelligence services before taking action.
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+</main>
+
+</div>
+
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+function login(event) {
+
+    event.preventDefault();
+
+
+    const email =
+        document.getElementById("email").value.trim();
+
+
+    const password =
+        document.getElementById("password").value.trim();
+
+
+    const error =
+        document.getElementById("loginError");
+
+
+    if (email === "" || password === "") {
+
+        error.innerText =
+            "Please enter email and password.";
+
+        return;
+
+    }
+
+
+    document.getElementById("loggedUser")
+        .innerText = email;
+
+
+    document.getElementById("loginPage")
+        .style.display = "none";
+
+
+    document.getElementById("mainWebsite")
+        .style.display = "block";
+
+
+    showPageById("dashboard");
+
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+function logout() {
+
+    document.getElementById("mainWebsite")
+        .style.display = "none";
+
+
+    document.getElementById("loginPage")
+        .style.display = "flex";
+
+
+    document.getElementById("email")
+        .value = "";
+
+
+    document.getElementById("password")
+        .value = "";
+
+
+    document.getElementById("loginError")
+        .innerText = "";
+
+}
+
+
+/* =========================================================
+   PAGE NAVIGATION
+========================================================= */
+
+function showPage(pageId, clickedButton) {
+
+    const pages =
+        document.querySelectorAll(".page");
+
+
+    pages.forEach(function(page) {
+
+        page.classList.remove("active");
+
+    });
+
+
+    const selectedPage =
+        document.getElementById(pageId);
+
+
+    if (selectedPage) {
+
+        selectedPage.classList.add("active");
+
+    }
+
+
+    const buttons =
+        document.querySelectorAll(".sidebar button");
+
+
+    buttons.forEach(function(button) {
+
+        button.classList.remove("active");
+
+    });
+
+
+    if (clickedButton) {
+
+        clickedButton.classList.add("active");
+
+    }
+
+
+    if (pageId === "attackGraph") {
+
+        setTimeout(drawGraphLines, 100);
+
+    }
+
+}
+
+
+/* =========================================================
+   NAVIGATION WITHOUT BUTTON
+========================================================= */
+
+function showPageById(pageId) {
+
+    const pages =
+        document.querySelectorAll(".page");
+
+
+    pages.forEach(function(page) {
+
+        page.classList.remove("active");
+
+    });
+
+
+    const page =
+        document.getElementById(pageId);
+
+
+    if (page) {
+
+        page.classList.add("active");
+
+    }
+
+
+    const buttons =
+        document.querySelectorAll(".sidebar button");
+
+
+    buttons.forEach(function(button) {
+
+        button.classList.remove("active");
+
+        if (
+            button.getAttribute("onclick") &&
+            button.getAttribute("onclick")
+            .includes("'" + pageId + "'")
+        ) {
+
+            button.classList.add("active");
+
+        }
+
+    });
+
+
+    if (pageId === "attackGraph") {
+
+        setTimeout(drawGraphLines, 100);
+
+    }
+
+}
+
+
+/* =========================================================
+   VIEW EMAIL
+========================================================= */
+
+function viewEmail(sender, subject, body) {
+
+    document.getElementById("selectedEmail")
+        .style.display = "block";
+
+
+    document.getElementById("emailSender")
+        .innerText = sender;
+
+
+    document.getElementById("emailSubject")
+        .innerText = subject;
+
+
+    document.getElementById("emailBody")
+        .innerText = body;
+
+
+    document.getElementById("alertSender")
+        .innerText = sender;
+
+
+    document.getElementById("alertSubject")
+        .innerText = subject;
+
+
+    showPageById("incomingEmail");
+
+
+    setTimeout(function() {
+
+        document.getElementById("selectedEmail")
+            .scrollIntoView({
+                behavior: "smooth"
+            });
+
+    }, 100);
+
+}
+
+
+/* =========================================================
+   OPEN ALERT
+========================================================= */
+
+function openAlert() {
+
+    showPageById("suspiciousAlert");
+
+}
+
+
+/* =========================================================
+   ALLOW ANALYSIS
+========================================================= */
+
+function allowAnalysis() {
+
+    showPageById("processing");
+
+
+    startProcessing();
+
+}
+
+
+/* =========================================================
+   CANCEL ANALYSIS
+========================================================= */
+
+function cancelAnalysis() {
+
+    const result =
+        document.getElementById("permissionResult");
+
+
+    result.style.display = "block";
+
+
+    result.innerHTML = `
+
+        <div class="box">
+
+            <h3>
+                Analysis Cancelled
+            </h3>
+
+            <p>
+                The email was not submitted for detailed analysis.
+            </p>
+
+            <p style="margin-top:10px;">
+
+                <b>Status:</b>
+
+                <span class="safe">
+                    Waiting for user action
+                </span>
+
+            </p>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   PROCESSING SCREEN
+========================================================= */
+
+function startProcessing() {
+
+    const steps = [
+
+        {
+            id: 1,
+            text: "Parsing email content..."
+        },
+
+        {
+            id: 2,
+            text: "Checking SPF, DKIM and DMARC..."
+        },
+
+        {
+            id: 3,
+            text: "Checking threat indicators..."
+        },
+
+        {
+            id: 4,
+            text: "Running AI analysis..."
+        },
+
+        {
+            id: 5,
+            text: "Calculating final risk score..."
+        }
+
+    ];
+
+
+    let current = 0;
+
+
+    document.getElementById("processingBar")
+        .style.width = "0%";
+
+
+    steps.forEach(function(step) {
+
+        document.getElementById("step" + step.id)
+            .classList.remove("running");
+
+        document.getElementById("step" + step.id)
+            .classList.remove("completed");
+
+        document.getElementById("status" + step.id)
+            .innerText = "Waiting";
+
+    });
+
+
+    function runNextStep() {
+
+        if (current > 0) {
+
+            document.getElementById(
+                "step" + current
+            ).classList.remove("running");
+
+
+            document.getElementById(
+                "step" + current
+            ).classList.add("completed");
+
+
+            document.getElementById(
+                "status" + current
+            ).innerText = "Completed";
+
+        }
+
+
+        current++;
+
+
+        if (current <= steps.length) {
+
+            document.getElementById(
+                "step" + current
+            ).classList.add("running");
+
+
+            document.getElementById(
+                "status" + current
+            ).innerText = "Processing...";
+
+
+            document.getElementById(
+                "processingBar"
+            ).style.width =
+                ((current - 1) / steps.length * 100) + "%";
+
+
+            setTimeout(
+                runNextStep,
+                1200
+            );
+
+        }
+
+        else {
+
+            document.getElementById(
+                "processingBar"
+            ).style.width = "100%";
+
+
+            setTimeout(function() {
+
+                showPageById(
+                    "investigationDashboard"
+                );
+
+            }, 700);
+
+        }
+
+    }
+
+
+    runNextStep();
+
+}
+
+
+/* =========================================================
+   FILE NAME
+========================================================= */
+
+function showFileName() {
+
+    const file =
+        document.getElementById("emailFile")
+        .files[0];
+
+
+    const fileName =
+        document.getElementById("fileName");
+
+
+    if (file) {
+
+        fileName.innerText =
+            "Selected file: " + file.name;
+
+    }
+
+}
+
+
+/* =========================================================
+   EMAIL ANALYSIS
+========================================================= */
+
+function analyzeEmail() {
+
+    const email =
+        document.getElementById("emailText")
+        .value
+        .toLowerCase();
+
+
+    const result =
+        document.getElementById("emailResult");
+
+
+    if (email.trim() === "") {
+
+        alert("Please enter email content.");
+
+        return;
+
+    }
+
+
+    let score = 10;
+
+
+    if (email.includes("urgent"))
+        score += 20;
+
+
+    if (email.includes("verify"))
+        score += 20;
+
+
+    if (email.includes("click"))
+        score += 15;
+
+
+    if (email.includes("password"))
+        score += 15;
+
+
+    if (email.includes("account"))
+        score += 10;
+
+
+    if (email.includes("winner"))
+        score += 10;
+
+
+    if (score > 100)
+        score = 100;
+
+
+    let status;
+
+
+    if (score >= 70) {
+
+        status =
+            "<span class='danger'>High Risk</span>";
+
+    }
+
+    else if (score >= 40) {
+
+        status =
+            "<span class='warning'>Suspicious</span>";
+
+    }
+
+    else {
+
+        status =
+            "<span class='safe'>Likely Safe</span>";
+
+    }
+
+
+    result.style.display = "block";
+
+
+    result.innerHTML = `
+
+        <h3>
+            Email Analysis Result
+        </h3>
+
+        <p>
+            <b>Threat Score:</b>
+            ${score}%
+        </p>
+
+        <p>
+            <b>Threat Level:</b>
+            ${status}
+        </p>
+
+        <p>
+            <b>Content Analysis:</b>
+            Suspicious keywords and patterns were checked.
+        </p>
+
+        <p>
+            <b>Recommendation:</b>
+            ${
+                score >= 60
+                ? "Perform detailed header and URL analysis."
+                : "Email does not show major suspicious indicators."
+            }
+        </p>
+
+    `;
+
+}
+
+
+/* =========================================================
+   HEADER ANALYSIS
+========================================================= */
+
+function analyzeHeader() {
+
+    const header =
+        document.getElementById("headerText")
+        .value;
+
+
+    const result =
+        document.getElementById("headerResult");
+
+
+    if (header.trim() === "") {
+
+        alert("Please enter email headers.");
+
+        return;
+
+    }
+
+
+    result.style.display = "block";
+
+
+    result.innerHTML = `
+
+        <h3>
+            Header Analysis Result
+        </h3>
+
+        <p>
+            <b>SPF:</b>
+            <span class="safe">Passed</span>
+        </p>
+
+        <p>
+            <b>DKIM:</b>
+            <span class="danger">Failed</span>
+        </p>
+
+        <p>
+            <b>DMARC:</b>
+            <span class="danger">Failed</span>
+        </p>
+
+        <p>
+            <b>Return Path:</b>
+            <span class="warning">
+                Different from sender
+            </span>
+        </p>
+
+        <p>
+            <b>Header Result:</b>
+            <span class="danger">
+                Suspicious
+            </span>
+        </p>
+
+    `;
+
+}
+
+
+/* =========================================================
+   URL ANALYSIS
+========================================================= */
+
+function analyzeURL() {
+
+    const url =
+        document.getElementById("urlInput")
+        .value
+        .trim();
+
+
+    const result =
+        document.getElementById("urlResult");
+
+
+    if (url === "") {
+
+        alert("Please enter a URL.");
+
+        return;
+
+    }
+
+
+    const lowerURL =
+        url.toLowerCase();
+
+
+    const suspiciousWords = [
+
+        "login",
+        "verify",
+        "account",
+        "password",
+        "secure",
+        "update",
+        "confirm"
+
+    ];
+
+
+    let suspicious = false;
+
+
+    suspiciousWords.forEach(function(word) {
+
+        if (lowerURL.includes(word)) {
+
+            suspicious = true;
+
+        }
+
+    });
+
+
+    result.style.display = "block";
+
+
+    if (suspicious) {
+
+        result.innerHTML = `
+
+            <h3>
+                URL Analysis Result
+            </h3>
+
+            <p>
+                <b>URL:</b>
+                ${url}
+            </p>
+
+            <p>
+                <b>Status:</b>
+
+                <span class="danger">
+                    Suspicious
+                </span>
+
+            </p>
+
+            <p>
+                <b>Risk Level:</b>
+
+                <span class="danger">
+                    HIGH
+                </span>
+
+            </p>
+
+            <p>
+                <b>Reason:</b>
+                URL contains possible phishing-related keywords.
+            </p>
+
+        `;
+
+    }
+
+    else {
+
+        result.innerHTML = `
+
+            <h3>
+                URL Analysis Result
+            </h3>
+
+            <p>
+                <b>URL:</b>
+                ${url}
+            </p>
+
+            <p>
+                <b>Status:</b>
+
+                <span class="safe">
+                    No immediate issue detected
+                </span>
+
+            </p>
+
+            <p>
+                <b>Risk Level:</b>
+
+                <span class="safe">
+                    LOW
+                </span>
+
+            </p>
+
+        `;
+
+    }
+
+}
+
+
+/* =========================================================
+   IP ANALYSIS
+========================================================= */
+
+function analyzeIP() {
+
+    const ip =
+        document.getElementById("ipInput")
+        .value
+        .trim();
+
+
+    const result =
+        document.getElementById("ipResult");
+
+
+    if (ip === "") {
+
+        alert("Please enter an IP address.");
+
+        return;
+
+    }
+
+
+    result.style.display = "block";
+
+
+    result.innerHTML = `
+
+        <h3>
+            IP / Geolocation Result
+        </h3>
+
+        <p>
+            <b>IP Address:</b>
+            ${ip}
+        </p>
+
+        <p>
+            <b>Country:</b>
+            Approximate network location
+        </p>
+
+        <p>
+            <b>Region:</b>
+            Available through threat-intelligence service
+        </p>
+
+        <p>
+            <b>City:</b>
+            Approximate only
+        </p>
+
+        <p>
+            <b>ISP:</b>
+            Unknown
+        </p>
+
+        <p>
+            <b>Risk Level:</b>
+
+            <span class="warning">
+                Medium
+            </span>
+
+        </p>
+
+        <p>
+            <b>Note:</b>
+            Geolocation indicates an approximate network
+            location and does not identify an attacker's
+            exact physical location.
+        </p>
+
+    `;
+
+}
+
+
+/* =========================================================
+   GRAPH LINES
+========================================================= */
+
+function drawLine(lineId, node1, node2) {
+
+    const graph =
+        document.getElementById("graphArea");
+
+
+    const line =
+        document.getElementById(lineId);
+
+
+    const rect1 =
+        node1.getBoundingClientRect();
+
+
+    const rect2 =
+        node2.getBoundingClientRect();
+
+
+    const graphRect =
+        graph.getBoundingClientRect();
+
+
+    const x1 =
+        rect1.left +
+        rect1.width / 2 -
+        graphRect.left;
+
+
+    const y1 =
+        rect1.top +
+        rect1.height / 2 -
+        graphRect.top;
+
+
+    const x2 =
+        rect2.left +
+        rect2.width / 2 -
+        graphRect.left;
+
+
+    const y2 =
+        rect2.top +
+        rect2.height / 2 -
+        graphRect.top;
+
+
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+
+    const length =
+        Math.sqrt(dx * dx + dy * dy);
+
+
+    const angle =
+        Math.atan2(dy, dx) * 180 / Math.PI;
+
+
+    line.style.width =
+        length + "px";
+
+
+    line.style.left =
+        x1 + "px";
+
+
+    line.style.top =
+        y1 + "px";
+
+
+    line.style.transform =
+        "rotate(" + angle + "deg)";
+
+}
+
+
+function drawGraphLines() {
+
+    const email =
+        document.querySelector(".node-email");
+
+
+    const domain =
+        document.querySelector(".node-domain");
+
+
+    const ip =
+        document.querySelector(".node-ip");
+
+
+    const url =
+        document.querySelector(".node-url");
+
+
+    const infrastructure =
+        document.querySelector(".node-infrastructure");
+
+
+    drawLine(
+        "lineEmailDomain",
+        email,
+        domain
+    );
+
+
+    drawLine(
+        "lineDomainURL",
+        domain,
+        url
+    );
+
+
+    drawLine(
+        "lineIPURL",
+        ip,
+        url
+    );
+
+
+    drawLine(
+        "lineURLInfrastructure",
+        url,
+        infrastructure
+    );
+
+}
+
+
+window.addEventListener(
+    "resize",
+    drawGraphLines
+);
+
+
+/* =========================================================
+   DOWNLOAD FORENSIC REPORT
+========================================================= */
+
+function downloadReport() {
+
+    const report =
+        document.getElementById(
+            "forensicReportContent"
+        ).innerText;
+
+
+    const fullReport =
+
+`THREATMAIL AI
+Email Threat Detection & Forensic Intelligence
+==================================================
+
+FORENSIC INVESTIGATION REPORT
+
+Investigation Summary
+--------------------------------------------------
+The investigated email has been classified as HIGH RISK
+with an overall threat score of 82%.
+
+Email Information
+--------------------------------------------------
+Sender: security@example.com
+Subject: Urgent Account Verification Required
+Classification: High Risk
+
+Authentication Results
+--------------------------------------------------
+SPF: Passed
+DKIM: Failed
+DMARC: Failed
+
+Threat Indicators
+--------------------------------------------------
+Domain: suspicious-example.net
+IP: 203.0.113.25
+URL: /account/verify
+
+AI Findings
+--------------------------------------------------
+- Suspicious account verification language detected.
+- Sender domain requires further verification.
+- DKIM and DMARC authentication failures detected.
+- Suspicious verification URL identified.
+- Multiple indicators contribute to the high-risk score.
+
+Investigation Graph
+--------------------------------------------------
+Email -> Domain -> IP -> URL -> Infrastructure
+
+Final Assessment
+--------------------------------------------------
+Risk Score: 82%
+Threat Level: HIGH
+
+Recommended Action:
+Do not trust links or provide credentials. Perform
+additional investigation using backend threat-intelligence
+services before taking action.
+
+--------------------------------------------------
+Generated by ThreatMail AI
+`;
+
+
+    const blob =
+        new Blob(
+            [fullReport],
+            {
+                type: "text/plain"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(blob);
+
+
+    const link =
+        document.createElement("a");
+
+
+    link.href = url;
+
+
+    link.download =
+        "ThreatMail_Forensic_Report.txt";
+
+
+    document.body.appendChild(link);
+
+
+    link.click();
+
+
+    document.body.removeChild(link);
+
+
+    URL.revokeObjectURL(url);
+
+}
+
+</script>
+
+</body>
+</html>
