@@ -167,7 +167,14 @@ def parse_raw_email(raw_email: str) -> EmailAnalysisResponse:
 
     # AI Content Analysis (Phishing, Urgency, Impersonation, Social Engineering)
     ai_service = get_ai_service()
-    ai_report = ai_service.analyze(subject=subject_header, body=body_content)
+    auth_summary = f"SPF: {auth_result.spf}, DKIM: {auth_result.dkim}, DMARC: {auth_result.dmarc}"
+    ai_report = ai_service.analyze(
+        subject=subject_header,
+        body=body_content,
+        sender=from_header,
+        from_domain=forensics.from_domain,
+        auth_status=auth_summary,
+    )
 
     # Deterministic Risk Scoring Engine
     risk_service = get_risk_scoring_service()

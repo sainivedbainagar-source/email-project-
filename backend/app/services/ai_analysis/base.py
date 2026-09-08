@@ -16,6 +16,13 @@ class BaseAIContentAnalyzer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def analyze_content(self, subject: Optional[str], body: str) -> AIContentAnalysis:
+    def analyze_content(
+        self,
+        subject: Optional[str],
+        body: str,
+        sender: Optional[str] = None,
+        from_domain: Optional[str] = None,
+        auth_status: Optional[str] = None,
+    ) -> AIContentAnalysis:
         """Analyze subject and body for phishing, urgency, impersonation, and social engineering."""
         raise NotImplementedError

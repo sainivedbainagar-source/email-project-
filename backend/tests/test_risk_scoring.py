@@ -1,5 +1,6 @@
 """Automated unit and integration tests for the deterministic Risk Scoring Engine."""
 
+import json
 from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
@@ -181,12 +182,73 @@ def test_risk_scoring_critical_paypal_phishing_scenario():
 
     urls = ["https://fake-paypal-verify.net/signin"]
 
-    # Total calculated points: 40 + 35 + 5 + 30 = 110 points -> clamped to 100
+    # Total calculated points: 40 + 35 + 5 + 30 + 65 (compound factors) = 175 points -> clamped to 100
     result = service.calculate_risk(auth, forensics, threat_intel, ai, urls)
 
     assert result.score == 100  # Capped at 100
     assert result.threat_level == ThreatLevel.CRITICAL
-    assert len(result.factors) == 10
+    assert len(result.factors) == 14
+    factor_names = [f.factor for f in result.factors]
+    assert "COMPOUND_CREDENTIAL_PHISHING_LURE" in factor_names
+    assert "COMPOUND_COERCIVE_URGENCY_PRESSURE" in factor_names
+    assert "COMPOUND_SPOOFED_BRAND_IMPERSONATION" in factor_names
+    assert "COMPOUND_AUTHENTICATION_FAILURE_WITH_PHISHING" in factor_names
+
+
+def test_risk_scoring_paypal_phishing_without_auth_headers_compound_factors():
+    """Verify that a PayPal phishing lure without MTA auth headers (previously under-scored at 35 MEDIUM)
+    correctly triggers compound factors (credential harvesting + impersonation + urgency + external link mismatch)
+    to produce a HIGH threat level (score 70).
+    """
+    service = RiskScoringService()
+
+    # No MTA authentication headers available (e.g. raw email paste or missing headers)
+    auth = AuthenticationResult(spf="none", dkim="none", dmarc="none")
+
+    # Header forensics: from PayPal, but no reply-to or return-path headers
+    forensics = HeaderForensics(
+        from_domain="paypal.com",
+        mismatches=HeaderMismatch(has_mismatch=False),
+    )
+
+    threat_intel = ThreatIntelligenceReport()
+
+    # AI content analysis confirms active phishing vector
+    ai = AIContentAnalysis(
+        status=AIAnalysisStatus.COMPLETED,
+        overall_threat_level=ContentThreatLevel.HIGH,
+        credential_harvesting_detected=True,
+        impersonation_detected=True,
+        impersonated_entities=["PayPal"],
+        urgency_pressure_tactics=["24-hour account suspension deadline"],
+    )
+
+    # Deceptive off-domain credential portal link
+    urls = ["https://paypa1-security.com/restore-login"]
+
+    result = service.calculate_risk(auth, forensics, threat_intel, ai, urls)
+
+    # Base points:
+    #   EXTERNAL_LINK_DOMAIN_MISMATCH (5)
+    #   AI_CREDENTIAL_HARVESTING (15)
+    #   AI_IMPERSONATION_DETECTED (10)
+    #   AI_URGENCY_PRESSURE_TACTICS (5)
+    #   = 35
+    # Compound synergy points:
+    #   COMPOUND_CREDENTIAL_PHISHING_LURE (20)
+    #   COMPOUND_COERCIVE_URGENCY_PRESSURE (15)
+    #   = 35
+    # Total = 70 points -> HIGH threat level (elevated from previous 35 MEDIUM)
+    assert result.score == 70
+    assert result.threat_level == ThreatLevel.HIGH
+    factor_names = [f.factor for f in result.factors]
+    assert "EXTERNAL_LINK_DOMAIN_MISMATCH" in factor_names
+    assert "AI_CREDENTIAL_HARVESTING" in factor_names
+    assert "AI_IMPERSONATION_DETECTED" in factor_names
+    assert "AI_URGENCY_PRESSURE_TACTICS" in factor_names
+    assert "COMPOUND_CREDENTIAL_PHISHING_LURE" in factor_names
+    assert "COMPOUND_COERCIVE_URGENCY_PRESSURE" in factor_names
+    assert len(result.factors) == 6
 
 
 def test_risk_scoring_punycode_and_ip_url():
@@ -308,3 +370,49 @@ def test_endpoint_risk_score_suspicious_paypal_scenario():
     assert "DKIM_SIGNATURE_FAILED" in factor_names
     assert "FROM_REPLY_TO_MISMATCH" in factor_names
     assert "FROM_RETURN_PATH_MISMATCH" in factor_names
+
+
+def test_endpoint_risk_score_paypal_phishing_with_ai_compound_factors():
+    """Verify endpoint risk scoring with mocked Groq AI produces HIGH via compound factors (score 70)."""
+    raw_email = (
+        "From: PayPal Service <service@paypal.com>\r\n"
+        "To: victim@example.com\r\n"
+        "Subject: Urgent: Verify Your PayPal Account\r\n"
+        "\r\n"
+        "Dear Customer, verify your credentials within 24 hours to prevent account suspension:\r\n"
+        "https://paypa1-security.com/restore-login\r\n"
+    )
+
+    mock_llm_payload = {
+        "overall_threat_level": "high",
+        "phishing_indicators": ["Credential verification lure mimicking PayPal"],
+        "urgency_pressure_tactics": ["24-hour suspension ultimatum"],
+        "impersonation_detected": True,
+        "impersonated_entities": ["PayPal"],
+        "credential_harvesting_detected": True,
+        "financial_requests_detected": False,
+        "social_engineering_patterns": ["Urgency", "Brand impersonation"],
+        "summary": "Credential harvesting attack spoofing PayPal.",
+    }
+
+    mock_http_response = MagicMock()
+    mock_http_response.status_code = 200
+    mock_http_response.json.return_value = {
+        "choices": [{"message": {"content": json.dumps(mock_llm_payload)}}]
+    }
+
+    mock_ctx = MagicMock()
+    mock_ctx.__enter__.return_value.post.return_value = mock_http_response
+
+    with patch("app.services.ai_analysis.groq_analyzer.settings.GROQ_API_KEY", "mock-key"):
+        with patch("app.services.ai_analysis.groq_analyzer.httpx.Client", return_value=mock_ctx):
+            response = client.post(ENDPOINT, json={"raw_email": raw_email})
+            assert response.status_code == 200
+
+            data = response.json()
+            rs = data["risk_score"]
+            assert rs["score"] == 70
+            assert rs["threat_level"] == "high"
+            factor_names = [f["factor"] for f in rs["factors"]]
+            assert "COMPOUND_CREDENTIAL_PHISHING_LURE" in factor_names
+            assert "COMPOUND_COERCIVE_URGENCY_PRESSURE" in factor_names

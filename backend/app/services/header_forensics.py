@@ -13,6 +13,60 @@ IPV4_PATTERN = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
 # Bracketed IP pattern commonly found in Received headers (e.g. [192.0.2.1] or [IPv6:2001:db8::1])
 BRACKETED_IP_PATTERN = re.compile(r"\[(?:IPv6:)?([0-9a-fA-F:\.]+)\]")
 
+try:
+    import tldextract
+    _tld_extractor = tldextract.TLDExtract(cache_dir=None)
+except ImportError:
+    _tld_extractor = None
+
+
+def get_registered_domain(domain_or_address: Optional[str]) -> Optional[str]:
+    """Extract the organizational / registrable domain (eTLD+1) from a domain name or address.
+
+    Examples:
+    - 'google.com' -> 'google.com'
+    - 'scoutcamp.bounces.google.com' -> 'google.com'
+    - 'workspace.google.com' -> 'google.com'
+    - 'mail.paypal.co.uk' -> 'paypal.co.uk'
+    """
+    if not domain_or_address or not str(domain_or_address).strip():
+        return None
+
+    cleaned = str(domain_or_address).strip().lower().strip(".,;:!?'\"")
+    if "@" in cleaned:
+        cleaned = cleaned.split("@")[-1].strip().strip("<>[]()\"' ")
+
+    if _tld_extractor:
+        try:
+            ext = _tld_extractor(cleaned)
+            if ext.domain and ext.suffix:
+                return f"{ext.domain}.{ext.suffix}".lower()
+            if ext.domain:
+                return ext.domain.lower()
+        except Exception:
+            pass
+
+    # Fallback if tldextract is unavailable
+    parts = cleaned.split(".")
+    if len(parts) >= 2:
+        if len(parts) >= 3 and parts[-2] in ("co", "com", "gov", "org", "net", "edu", "ac") and len(parts[-1]) == 2:
+            return ".".join(parts[-3:])
+        return ".".join(parts[-2:])
+    return cleaned
+
+
+def is_same_organization(domain1: Optional[str], domain2: Optional[str]) -> bool:
+    """Return True if domain1 and domain2 belong to the same organizational domain (eTLD+1)."""
+    if not domain1 or not domain2:
+        return False
+    d1 = domain1.strip().lower()
+    d2 = domain2.strip().lower()
+    if d1 == d2:
+        return True
+    reg1 = get_registered_domain(d1)
+    reg2 = get_registered_domain(d2)
+    return bool(reg1 and reg2 and reg1 == reg2)
+
 
 def extract_domain(address_str: Optional[str]) -> Optional[str]:
     """Extract and normalize the domain name from an email address or header string."""
@@ -81,25 +135,29 @@ def analyze_header_mismatches(
     from_header: Optional[str] = None,
     auth_result: Optional[AuthenticationResult] = None,
 ) -> HeaderMismatch:
-    """Analyze headers for discrepancies and potential spoofing/phishing indicators."""
+    """Analyze headers for discrepancies and potential spoofing/phishing indicators.
+
+    Uses organizational / registrable domains (eTLD+1) rather than exact hostname equality
+    to ensure subdomains belonging to the same organization are not treated as mismatches.
+    """
     indicators: List[str] = []
     from_reply_to_mismatch = False
     from_return_path_mismatch = False
 
-    # 1. Check From domain vs Reply-To domain
-    if from_domain and reply_to_domain and from_domain != reply_to_domain:
+    # 1. Check From domain vs Reply-To domain (organizational level)
+    if from_domain and reply_to_domain and not is_same_organization(from_domain, reply_to_domain):
         from_reply_to_mismatch = True
         indicators.append(
             f"From domain '{from_domain}' does not match Reply-To domain '{reply_to_domain}'. "
-            "Replies will be routed to a different domain."
+            "Replies will be routed to a different organizational domain."
         )
 
-    # 2. Check From domain vs Return-Path domain
-    if from_domain and return_path_domain and from_domain != return_path_domain:
+    # 2. Check From domain vs Return-Path domain (organizational level)
+    if from_domain and return_path_domain and not is_same_organization(from_domain, return_path_domain):
         from_return_path_mismatch = True
         indicators.append(
             f"From domain '{from_domain}' does not match Return-Path domain '{return_path_domain}'. "
-            "Envelope sender differs from header sender."
+            "Envelope sender differs from header sender organization."
         )
 
     # 3. Check for Display Name spoofing in From header (e.g. "CEO <scammer@other.com>" or "support@paypal.com <bad@evil.com>")
@@ -107,7 +165,7 @@ def analyze_header_mismatches(
         display_name, addr = parseaddr(from_header)
         if display_name and ("@" in display_name or ".com" in display_name.lower()):
             disp_domain = extract_domain(display_name)
-            if disp_domain and from_domain and disp_domain != from_domain:
+            if disp_domain and from_domain and not is_same_organization(disp_domain, from_domain):
                 indicators.append(
                     f"Display name '{display_name}' mimics domain '{disp_domain}' but actual sender domain is '{from_domain}'."
                 )

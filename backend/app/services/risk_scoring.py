@@ -11,7 +11,8 @@ from urllib.parse import urlparse
 from app.models.ai_analysis import AIAnalysisStatus, AIContentAnalysis
 from app.models.email_analysis import AuthenticationResult, HeaderForensics
 from app.models.risk_scoring import RiskFactor, RiskScore, ThreatLevel
-from app.models.threat_intel import ThreatIntelligenceReport
+from app.models.threat_intel import ThreatIntelligenceReport, ThreatStatus
+from app.services.header_forensics import get_registered_domain, is_same_organization
 
 
 class RiskScoringService:
@@ -39,6 +40,7 @@ class RiskScoringService:
     ) -> RiskScore:
         """Evaluate evidence across all analytical modules and return an itemized RiskScore."""
         factors: List[RiskFactor] = []
+        from_dom = (forensics.from_domain or "").lower()
 
         # -------------------------------------------------------------------
         # 1. Authentication Integrity (Header-reported SPF, DKIM, DMARC)
@@ -189,21 +191,50 @@ class RiskScoringService:
             )
 
         # External Link Domain Mismatch:
-        # If the email contains URLs and none of them share the sender's domain
+        # Evaluate whether URLs align with the sender's organizational domain (eTLD+1).
+        # External links and URL shorteners are treated as weak evidence unless stronger malicious indicators exist.
+        has_external_link_mismatch = False
         if forensics.from_domain and url_domains:
             from_dom = forensics.from_domain.lower()
-            aligned = any(d == from_dom or d.endswith("." + from_dom) for d in url_domains)
+            aligned = any(
+                is_same_organization(d, from_dom) or d == from_dom or d.endswith("." + from_dom)
+                for d in url_domains
+            )
             if not aligned and len(url_domains) > 0:
-                factors.append(
-                    RiskFactor(
-                        factor="EXTERNAL_LINK_DOMAIN_MISMATCH",
-                        points=5,
-                        reason=(
-                            f"Hyperlinks point exclusively to third-party domains ({', '.join(url_domains[:3])}) "
-                            f"unaffiliated with sender domain '{from_dom}'."
-                        ),
+                has_external_link_mismatch = True
+                has_auth_pass = (spf == "pass" and dkim == "pass" and dmarc == "pass")
+                has_other_risks = (
+                    bool(mismatches.from_reply_to_mismatch)
+                    or bool(mismatches.from_return_path_mismatch)
+                    or display_name_spoofed
+                    or bool(ip_urls)
+                    or bool(punycode_domains)
+                    or (spf in ("fail", "permerror", "softfail"))
+                    or (dmarc == "fail")
+                    or (dkim in ("fail", "permerror"))
+                    or (threat_intel and any(d.threat_status == ThreatStatus.MALICIOUS for d in threat_intel.domains))
+                    or (
+                        ai_analysis.status == AIAnalysisStatus.COMPLETED
+                        and (
+                            ai_analysis.credential_harvesting_detected
+                            or ai_analysis.impersonation_detected
+                            or ai_analysis.financial_requests_detected
+                        )
                     )
                 )
+
+                # Weak evidence: only penalize external links if other risk indicators exist or auth didn't pass
+                if has_other_risks or not has_auth_pass:
+                    factors.append(
+                        RiskFactor(
+                            factor="EXTERNAL_LINK_DOMAIN_MISMATCH",
+                            points=5,
+                            reason=(
+                                f"Hyperlinks point exclusively to third-party domains ({', '.join(url_domains[:3])}) "
+                                f"unaffiliated with sender domain '{from_dom}'."
+                            ),
+                        )
+                    )
 
         # -------------------------------------------------------------------
         # 4. AI Content Analysis (Evaluated ONLY if AI service completed)
@@ -252,6 +283,118 @@ class RiskScoringService:
                         reason=(
                             f"AI content analysis identified coercive urgency cues: "
                             f"{', '.join(ai_analysis.urgency_pressure_tactics[:2])}."
+                        ),
+                    )
+                )
+
+        # -------------------------------------------------------------------
+        # 5. Evidence-Based Compound Threat Factors (Cross-Module Combinations)
+        # Identifies compounding multi-vector risk synergies while keeping
+        # scoring deterministic, transparent, and capped at 100.
+        # -------------------------------------------------------------------
+        has_ip_url = bool(ip_urls)
+        has_off_domain_link = has_external_link_mismatch or has_ip_url
+        has_auth_failure = (
+            spf in ("fail", "permerror")
+            or dmarc == "fail"
+            or dkim in ("fail", "permerror")
+        )
+        has_routing_mismatch = (
+            mismatches.from_reply_to_mismatch
+            or mismatches.from_return_path_mismatch
+            or display_name_spoofed
+        )
+
+        if ai_analysis.status == AIAnalysisStatus.COMPLETED:
+            # Compound 1: Targeted Credential Phishing Lure
+            # Convergence of brand impersonation, credential harvesting, and off-domain destination links or off-brand sender
+            is_off_brand = (
+                any(
+                    not is_same_organization(ent.lower(), from_dom)
+                    for ent in ai_analysis.impersonated_entities
+                )
+                if ai_analysis.impersonated_entities
+                else False
+            )
+            if (
+                ai_analysis.credential_harvesting_detected
+                and ai_analysis.impersonation_detected
+                and (has_off_domain_link or is_off_brand or not from_dom)
+            ):
+                impersonated = ", ".join(ai_analysis.impersonated_entities) or "trusted brand"
+                dest = ", ".join(url_domains[:2]) if url_domains else (", ".join(ip_urls[:2]) if ip_urls else "external host")
+                factors.append(
+                    RiskFactor(
+                        factor="COMPOUND_CREDENTIAL_PHISHING_LURE",
+                        points=20,
+                        reason=(
+                            f"High-confidence phishing lure: brand impersonation ('{impersonated}') "
+                            f"converges with deceptive destination links ('{dest}') "
+                            "and credential harvesting directives."
+                        ),
+                    )
+                )
+
+            # Compound 2: Coercive Psychological Pressure in Phishing
+            # Artificial urgency pressure cues deployed alongside credential harvesting or impersonation
+            if ai_analysis.urgency_pressure_tactics and (
+                ai_analysis.credential_harvesting_detected
+                or ai_analysis.impersonation_detected
+                or ai_analysis.financial_requests_detected
+            ):
+                urgency_cues = ", ".join(ai_analysis.urgency_pressure_tactics[:2])
+                factors.append(
+                    RiskFactor(
+                        factor="COMPOUND_COERCIVE_URGENCY_PRESSURE",
+                        points=15,
+                        reason=(
+                            f"Coercive psychological manipulation: artificial urgency pressure cues "
+                            f"({urgency_cues}) deployed alongside deceptive exploitation indicators "
+                            "to induce impulsive compliance."
+                        ),
+                    )
+                )
+
+            # Compound 3: Spoofed Identity Misdirection
+            # Brand impersonation coincides with sender header routing discrepancies (Reply-To or Return-Path diversion)
+            if ai_analysis.impersonation_detected and has_routing_mismatch:
+                factors.append(
+                    RiskFactor(
+                        factor="COMPOUND_SPOOFED_BRAND_IMPERSONATION",
+                        points=15,
+                        reason=(
+                            "Identity deception synergy: brand impersonation coincides with sender header "
+                            "routing discrepancies (Reply-To or Return-Path diverted to third-party infrastructure)."
+                        ),
+                    )
+                )
+
+            # Compound 4: Cryptographic / Policy Authentication Failure with Phishing Content
+            # Header-reported auth failures directly coinciding with active deceptive phishing content
+            if has_auth_failure and (
+                ai_analysis.credential_harvesting_detected
+                or ai_analysis.impersonation_detected
+            ):
+                factors.append(
+                    RiskFactor(
+                        factor="COMPOUND_AUTHENTICATION_FAILURE_WITH_PHISHING",
+                        points=15,
+                        reason=(
+                            "Authentication policy failure (SPF/DKIM/DMARC) directly coincides with "
+                            "active deceptive phishing content (credential harvesting or brand impersonation)."
+                        ),
+                    )
+                )
+
+            # Compound 5: Financial Fraud & Brand/Executive Impersonation (BEC)
+            if ai_analysis.financial_requests_detected and ai_analysis.impersonation_detected:
+                factors.append(
+                    RiskFactor(
+                        factor="COMPOUND_FINANCIAL_IMPERSONATION_FRAUD",
+                        points=15,
+                        reason=(
+                            "Business Email Compromise (BEC) pattern: brand or executive impersonation "
+                            "directly combined with payment, invoice, or wire transfer solicitation."
                         ),
                     )
                 )

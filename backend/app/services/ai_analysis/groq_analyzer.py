@@ -9,13 +9,26 @@ from app.models.ai_analysis import AIAnalysisStatus, AIContentAnalysis, ContentT
 from app.services.ai_analysis.base import BaseAIContentAnalyzer
 
 SYSTEM_PROMPT = """You are a senior email cybersecurity and forensic intelligence analyst.
-Evaluate the provided email subject and body content for cyber threats, social engineering, and fraud.
+Evaluate the provided email content for cyber threats, social engineering, credential harvesting, and fraud.
+
+CRITICAL EVALUATION GUIDELINES (FALSE-POSITIVE PREVENTION):
+1. DISTINGUISH COMMERCIAL MARKETING FROM COERCIVE PHISHING:
+   - Legitimate commercial marketing, newsletters, product promotions, SaaS onboarding, and promotional discounts often use promotional calls-to-action, links, and marketing deadlines (e.g. 'limited time offer', 'save 50%', 'finish setting up your account', 'offer valid until tomorrow').
+   - DO NOT classify legitimate promotional discounts, incentives, or onboarding notifications as malicious phishing or coercive urgency.
+   - ONLY flag 'urgency_pressure_tactics' when there is coercive, manipulative panic or severe threats (e.g., immediate account suspension, administrative lock-out within 24h, law enforcement threat, unauthorized access alert).
+
+2. FIRST-PARTY BRAND COMMUNICATION vs. IMPERSONATION:
+   - If an email originates from the legitimate domain of an organization (e.g., Google sending emails about Google Workspace from google.com, or PayPal sending from paypal.com), this is legitimate first-party communication and NOT impersonation.
+   - ONLY flag 'impersonation_detected' when an attacker is pretending to be a third-party brand from unrelated or spoofed infrastructure.
+
+3. CREDENTIAL HARVESTING:
+   - ONLY flag 'credential_harvesting_detected' when the email explicitly directs the recipient to enter passwords, login credentials, PINs, or sensitive account recovery secrets on suspicious or external forms.
 
 You MUST respond strictly with a valid JSON object matching this schema:
 {
   "overall_threat_level": "benign" | "low" | "medium" | "high" | "critical",
   "phishing_indicators": ["list of detected phishing tactics, deceptive claims, or lure details"],
-  "urgency_pressure_tactics": ["list of identified urgency cues, deadlines, or panic-inducing phrasing"],
+  "urgency_pressure_tactics": ["list of identified coercive urgency cues, deadlines, or panic-inducing phrasing"],
   "impersonation_detected": true or false,
   "impersonated_entities": ["list of entities, brands, or roles being impersonated"],
   "credential_harvesting_detected": true or false,
@@ -78,8 +91,15 @@ class GroqContentAnalyzer(BaseAIContentAnalyzer):
         }
         return level_map.get(clean, ContentThreatLevel.UNKNOWN)
 
-    def analyze_content(self, subject: Optional[str], body: str) -> AIContentAnalysis:
-        """Analyze subject and body using Groq API."""
+    def analyze_content(
+        self,
+        subject: Optional[str],
+        body: str,
+        sender: Optional[str] = None,
+        from_domain: Optional[str] = None,
+        auth_status: Optional[str] = None,
+    ) -> AIContentAnalysis:
+        """Analyze subject and body using Groq API with sender context."""
         # Check if API key is configured
         if not self.api_key or not self.api_key.strip():
             return AIContentAnalysis(
@@ -94,7 +114,16 @@ class GroqContentAnalyzer(BaseAIContentAnalyzer):
         safe_subject = (subject or "").strip()[:500]
         safe_body = (body or "").strip()[:8000]
 
-        user_content = f"Subject: {safe_subject}\n\nEmail Body:\n{safe_body}"
+        meta_parts = []
+        if sender:
+            meta_parts.append(f"From (Sender Header): {sender.strip()[:200]}")
+        if from_domain:
+            meta_parts.append(f"Sender Domain: {from_domain.strip()[:100]}")
+        if auth_status:
+            meta_parts.append(f"Authentication Results: {auth_status.strip()[:200]}")
+
+        meta_header = "\n".join(meta_parts) + "\n\n" if meta_parts else ""
+        user_content = f"{meta_header}Subject: {safe_subject}\n\nEmail Body:\n{safe_body}"
 
         payload = {
             "model": self.model,

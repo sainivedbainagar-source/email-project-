@@ -270,10 +270,15 @@ def test_groq_analyzer_direct_unit_test():
     """Direct unit test of GroqContentAnalyzer behavior."""
     analyzer = GroqContentAnalyzer(
         api_key="test-key",
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         timeout_seconds=5.0,
     )
     assert analyzer.provider_name == "groq"
+    assert analyzer.model == "openai/gpt-oss-120b"
+
+    # Verify default analyzer falls back to settings.GROQ_MODEL
+    default_analyzer = GroqContentAnalyzer()
+    assert default_analyzer.model == "openai/gpt-oss-120b"
 
     # Test missing key fallback
     empty_analyzer = GroqContentAnalyzer(api_key="")

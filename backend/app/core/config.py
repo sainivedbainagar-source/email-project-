@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
     # AI Content Analysis Settings (Groq API)
     GROQ_API_KEY: str | None = None
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
     GROQ_API_URL: str = "https://api.groq.com/openai/v1/chat/completions"
     GROQ_TIMEOUT_SECONDS: float = 15.0
 
